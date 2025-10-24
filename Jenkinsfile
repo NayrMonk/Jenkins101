@@ -1,57 +1,56 @@
 pipeline {
+    agent any
 
-agent any
+    tools {
+        maven 'Maven'
+    }
 
-tools {
-maven &#39;Maven&#39;
-}
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to build')
+        string(name: 'BUILD_ENV', defaultValue: 'dev', description: 'Build environment')
+    }
 
-parameters {
-string(name: &#39;BRANCH_NAME&#39;, defaultValue: &#39;main&#39;)
-string(name: &#39;BUILD_ENV&#39;, defaultValue: &#39;dev&#39;)
-}
+    environment {
+        NEW_VERSION = "1.3.0"
+    }
 
-environment {
-NEW_VERSION = &quot;1.3.0&quot;
-}
+    stages {
+        stage('Build') {
+            steps {
+                echo "Building version ${NEW_VERSION} on branch ${params.BRANCH_NAME}"
+                // Uncomment this line to actually build
+                // bat "mvn clean package -Dversion=${NEW_VERSION}"
+            }
+        }
 
-stages {
-stage(&#39;Build&#39;) {
-steps {
-echo &quot;Building version ${NEW_VERSION} on branch
-${params.BRANCH_NAME}&quot;
-//bat &quot;mvn clean package -Dversion=${NEW_VERSION}&quot;
-}
-}
+        stage('Unit Test') {
+            when {
+                expression { return params.BUILD_ENV == 'dev' }
+            }
+            steps {
+                echo 'Running unit tests...'
+                // Add: bat "mvn test" if needed
+            }
+        }
 
-stage(&#39;Unit Test&#39;) {
-when {
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application...'
+                // Add your deployment commands here
+            }
+        }
+    }
 
-expression { return params.BUILD_ENV == &#39;dev&#39; }
-}
-steps {
-echo &#39;Running unit tests...&#39;
-}
-}
-
-stage(&#39;Deploy&#39;) {
-steps {
-echo &#39;Deploying application...&#39;
-}
-}
-}
-
-post {
-always {
-echo &#39;Cleaning up workspace...&#39;
-// deleteDir()
-}
-success {
-echo &#39;Pipeline succeeded.&#39;
-}
-failure {
-echo &#39;Pipeline failed.&#39;
-}
-}
-
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            // deleteDir() // Uncomment if you want to clean workspace after build
+        }
+        success {
+            echo 'Pipeline succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
 }
